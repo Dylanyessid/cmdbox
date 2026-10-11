@@ -55,3 +55,15 @@ Cada decisión sigue el formato **contexto → decisión → consecuencias**.
   - **CSP estricta** (RNF-05): no se cargan scripts externos y no se permiten conexiones a servidores externos, así que un script inyectado no podría enviar los datos a ningún lado.
   - **React escapa el texto por defecto**; está prohibido `dangerouslySetInnerHTML` y renderizar HTML proveniente de los datos.
 - **Consecuencias**: se acepta un riesgo bajo (requiere primero un XSS, en una app que no carga contenido externo, y afecta solo a la base de datos local) a cambio de no mantener una capa de comandos en Rust. Si el riesgo cambia (por ejemplo, con sincronización en la nube), se migra solo la implementación de `src/repositories/sqlite/` (ver D-05).
+
+### D-07 · Borrado definitivo en lugar de borrado lógico
+
+- **Contexto**: un borrado lógico (columna `deleted_at`) permitiría recuperar datos eliminados por error. A cambio, cada consulta debe filtrar los registros borrados (olvidarlo hace reaparecer datos), hay que diseñar la restauración (¿un comando cuya colección sigue borrada?), los datos crecen sin límite y los valores de variables secretas "borradas" seguirían guardados.
+- **Decisión**: borrado definitivo (`DELETE` + `ON DELETE CASCADE`), protegido por un diálogo de confirmación que indica qué se eliminará. La exportación a JSON (RF-20) sirve como respaldo.
+- **Consecuencias**: un borrado confirmado no se puede deshacer. Si en el futuro se implementa la recuperación (RF-25), la opción preferida es un "deshacer" temporal sin cambiar el esquema; si se optara por borrado lógico, la propagación a los comandos se haría con un trigger de SQLite para mantener la operación en una sola sentencia (D-01).
+
+### D-08 · Estilos inline permitidos en la CSP
+
+- **Contexto**: los componentes de la interfaz inyectan etiquetas `<style>` en tiempo de ejecución: `sonner` (notificaciones) inserta su CSS al cargarse y los diálogos y menús de Radix (base de shadcn/ui) lo hacen para bloquear el scroll mientras están abiertos. Con `style-src 'self'` esos estilos se bloquean. Además, Tauri añade un *nonce* a `style-src` al compilar, y cuando hay un nonce los navegadores ignoran `'unsafe-inline'`.
+- **Decisión**: `style-src 'self' 'unsafe-inline'` y `dangerousDisableAssetCspModification: ["style-src"]`, para que Tauri no añada el nonce **solo** a los estilos. `script-src` no cambia: los scripts siguen limitados a la app y protegidos con nonces y hashes.
+- **Consecuencias**: un atacante que lograra inyectar HTML podría inyectar CSS, pero no ejecutar JavaScript. Los ataques basados en CSS que filtran datos dependen de cargar recursos externos (`url(...)`), que siguen bloqueados por `img-src`, `font-src` (vía `default-src`) y `connect-src`. Se acepta este riesgo bajo a cambio de usar componentes accesibles y mantenidos en lugar de reimplementarlos.
