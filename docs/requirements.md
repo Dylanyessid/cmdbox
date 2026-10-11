@@ -1,6 +1,6 @@
 # cmdbox — Requisitos
 
-> Estado: **borrador v0.2** · Última actualización: 2026-10-11
+> Estado: **borrador v0.3** · Última actualización: 2026-10-11
 
 ## 1. Problema
 
@@ -103,21 +103,26 @@ Prioridad según **MoSCoW**: **M** = Must (MVP), **S** = Should, **C** = Could, 
 | **React + TypeScript** en el frontend | Stack que el autor domina; permite enfocarse en el producto. |
 | **Plugins oficiales de Tauri** en lugar de Rust propio | Reduce el código Rust al mínimo y aprovecha piezas mantenidas y auditadas. |
 | **Sin ejecución en el MVP**: solo copiar al portapapeles | Evita gestión de procesos, permisos de shell y riesgos de seguridad; enfoca el MVP en organizar, parametrizar y encontrar comandos. |
+| **SQLite** (`plugin-sql`) para la persistencia | Garantiza consistencia de los datos y operaciones atómicas: cada escritura se aplica completa o no se aplica, incluso si la app se cierra inesperadamente. Además, maneja bien escrituras pequeñas y frecuentes, como el registro de uso (RF-19). |
+| **Almacenamiento detrás de una capa de repositorio** | La interfaz no depende de SQLite directamente; facilita las pruebas y permite cambiar la persistencia sin tocar el resto de la app. |
 | **pnpm** como gestor de paquetes | Preferencia del autor; instalaciones rápidas. |
 
 ## 8. Modelo de datos (borrador)
 
+Tablas en SQLite; las relaciones usan claves foráneas con `ON DELETE CASCADE` (al borrar una colección se borran sus comandos en una sola operación).
+
 ```
 Collection   { id, name, createdAt, updatedAt }
-Command      { id, collectionId, name, template, description, tags[],
+Command      { id, collectionId → Collection, name, template, description, tags[],
                variables: Variable[], copyCount, lastUsedAt?,
                createdAt, updatedAt }
 Variable     { name, defaultValue?, secret }          // detectadas de la plantilla
 Environment  { id, name, sensitive, values: { [variable]: string } }
 ```
 
+> **Nota técnica**: `plugin-sql` usa un pool de conexiones, por lo que una transacción enviada como varias llamadas separadas desde el frontend (`BEGIN` … `COMMIT`) podría no ejecutarse en la misma conexión. Hay que verificarlo al implementar la persistencia; si se confirma, las operaciones de varios pasos se implementarán como un comando en Rust con una transacción real.
+
 ## 9. Preguntas abiertas
 
-1. **Almacenamiento**: ¿archivo JSON local o SQLite (`plugin-sql`)? Con el volumen esperado (cientos de comandos) y sin historial de ejecuciones, un JSON con campo `version` y escritura atómica es suficiente, legible y versionable.
-2. **Secretos**: ¿guardar los valores secretos en el keychain del sistema desde el MVP, o solo ocultarlos en la interfaz (RF-11) y dejar el keychain para después?
-3. **Idioma**: ¿documentación e interfaz en español o en inglés?
+1. **Secretos**: ¿guardar los valores secretos en el keychain del sistema desde el MVP, o solo ocultarlos en la interfaz (RF-11) y dejar el keychain para después?
+2. **Idioma**: ¿documentación e interfaz en español o en inglés?
