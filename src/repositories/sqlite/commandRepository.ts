@@ -47,7 +47,7 @@ export const sqliteCommandRepository: CommandRepository = {
   async listByCollection(collectionId) {
     const db = await getDb();
     const rows = await db.select<CommandRow[]>(
-      `SELECT ${COLUMNS} FROM commands WHERE collection_id = $1 ORDER BY name COLLATE NOCASE`,
+      `SELECT ${COLUMNS} FROM commands WHERE collection_id = ?1 ORDER BY name COLLATE NOCASE`,
       [collectionId],
     );
     return rows.map(toCommand);
@@ -68,7 +68,7 @@ export const sqliteCommandRepository: CommandRepository = {
     await db.execute(
       `INSERT INTO commands
          (id, collection_id, name, template, description, tags, variables, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+       VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9)`,
       [
         command.id,
         command.collectionId,
@@ -88,9 +88,9 @@ export const sqliteCommandRepository: CommandRepository = {
     const db = await getDb();
     const result = await db.execute(
       `UPDATE commands
-         SET collection_id = $1, name = $2, template = $3, description = $4,
-             tags = $5, variables = $6, updated_at = $7
-       WHERE id = $8`,
+         SET collection_id = ?1, name = ?2, template = ?3, description = ?4,
+             tags = ?5, variables = ?6, updated_at = ?7
+       WHERE id = ?8`,
       [
         input.collectionId,
         input.name.trim(),
@@ -107,7 +107,7 @@ export const sqliteCommandRepository: CommandRepository = {
 
   async delete(id) {
     const db = await getDb();
-    const result = await db.execute("DELETE FROM commands WHERE id = $1", [id]);
+    const result = await db.execute("DELETE FROM commands WHERE id = ?1", [id]);
     if (result.rowsAffected === 0) throw new NotFoundError("Command", id);
   },
 
@@ -115,7 +115,7 @@ export const sqliteCommandRepository: CommandRepository = {
     const db = await getDb();
     // Incrementing in SQL (not read-then-write) keeps this a single atomic statement.
     const result = await db.execute(
-      "UPDATE commands SET copy_count = copy_count + 1, last_used_at = $1 WHERE id = $2",
+      "UPDATE commands SET copy_count = copy_count + 1, last_used_at = ?1 WHERE id = ?2",
       [Date.now(), id],
     );
     if (result.rowsAffected === 0) throw new NotFoundError("Command", id);
