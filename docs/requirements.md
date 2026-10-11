@@ -123,7 +123,7 @@ Variable     { name, defaultValue?, secret }          // detectadas de la planti
 Environment  { id, name, sensitive, values: { [variable]: string } }
 ```
 
-> **Nota técnica**: `plugin-sql` usa un pool de conexiones, por lo que una transacción enviada como varias llamadas separadas desde el frontend (`BEGIN` … `COMMIT`) podría no ejecutarse en la misma conexión. Hay que verificarlo al implementar la persistencia; si se confirma, las operaciones de varios pasos se implementarán como un comando en Rust con una transacción real.
+> **Nota técnica**: `plugin-sql` usa un pool de conexiones, por lo que una transacción enviada como varias llamadas separadas desde el frontend (`BEGIN` … `COMMIT`) no se ejecuta necesariamente en la misma conexión. Verificado; la solución está en [technical-decisions.md](technical-decisions.md) (D-01).
 
 ## 9. Preguntas abiertas
 
