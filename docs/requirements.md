@@ -1,6 +1,6 @@
 # cmdbox — Requisitos
 
-> Estado: **borrador v0.3** · Última actualización: 2026-10-11
+> Estado: **borrador v0.4** · Última actualización: 2026-10-11
 
 ## 1. Problema
 
@@ -75,6 +75,7 @@ Prioridad según **MoSCoW**: **M** = Must (MVP), **S** = Should, **C** = Could, 
 | RF-21 | Ejecutar comandos dentro de la app y mostrar su salida. | W |
 | RF-22 | Abrir un comando en la terminal del sistema con las variables resueltas. | W |
 | RF-23 | Terminal integrada (pty) para comandos interactivos. | W |
+| RF-24 | Guardar los valores de variables secretas en el keychain del sistema operativo. | W |
 
 ## 5. Requisitos no funcionales
 
@@ -105,6 +106,8 @@ Prioridad según **MoSCoW**: **M** = Must (MVP), **S** = Should, **C** = Could, 
 | **Sin ejecución en el MVP**: solo copiar al portapapeles | Evita gestión de procesos, permisos de shell y riesgos de seguridad; enfoca el MVP en organizar, parametrizar y encontrar comandos. |
 | **SQLite** (`plugin-sql`) para la persistencia | Garantiza consistencia de los datos y operaciones atómicas: cada escritura se aplica completa o no se aplica, incluso si la app se cierra inesperadamente. Además, maneja bien escrituras pequeñas y frecuentes, como el registro de uso (RF-19). |
 | **Almacenamiento detrás de una capa de repositorio** | La interfaz no depende de SQLite directamente; facilita las pruebas y permite cambiar la persistencia sin tocar el resto de la app. |
+| **Secretos solo ocultos en la interfaz** en el MVP | Cubre el riesgo principal (que se vean en pantalla) sin la complejidad de integrar el keychain de cada sistema operativo. Limitación conocida: los valores se guardan sin cifrar en la base de datos local; el keychain queda para el futuro (RF-24). |
+| **Interfaz en inglés** | Hace la app usable por cualquier desarrollador y el proyecto más útil como portafolio internacional. |
 | **pnpm** como gestor de paquetes | Preferencia del autor; instalaciones rápidas. |
 
 ## 8. Modelo de datos (borrador)
@@ -124,5 +127,4 @@ Environment  { id, name, sensitive, values: { [variable]: string } }
 
 ## 9. Preguntas abiertas
 
-1. **Secretos**: ¿guardar los valores secretos en el keychain del sistema desde el MVP, o solo ocultarlos en la interfaz (RF-11) y dejar el keychain para después?
-2. **Idioma**: ¿documentación e interfaz en español o en inglés?
+Ninguna por ahora.
