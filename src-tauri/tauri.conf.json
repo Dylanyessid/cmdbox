@@ -22,7 +22,7 @@
         "default-src": "'self'",
         "connect-src": "ipc: http://ipc.localhost",
         "img-src": "'self' data:",
-        "style-src": "'self'",
+        "style-src": "'self' 'unsafe-inline'",
         "object-src": "'none'",
         "base-uri": "'none'",
         "form-action": "'none'"
@@ -37,7 +37,10 @@
         "form-action": "'none'",
         "script-src": "'self' 'unsafe-inline'"
       },
-      "freezePrototype": true
+      "freezePrototype": true,
+      "dangerousDisableAssetCspModification": [
+        "style-src"
+      ]
     }
   },
   "plugins": {
