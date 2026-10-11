@@ -119,8 +119,8 @@ Collection   { id, name, createdAt, updatedAt }
 Command      { id, collectionId → Collection, name, template, description, tags[],
                variables: Variable[], copyCount, lastUsedAt?,
                createdAt, updatedAt }
-Variable     { name, defaultValue?, secret }          // detectadas de la plantilla
-Environment  { id, name, sensitive, values: { [variable]: string } }
+Variable     { name, defaultValue?, isSecret }        // detectadas de la plantilla
+Environment  { id, name, isSensitive, values: { [variable]: string } }
 ```
 
 > **Nota técnica**: `plugin-sql` usa un pool de conexiones, por lo que una transacción enviada como varias llamadas separadas desde el frontend (`BEGIN` … `COMMIT`) no se ejecuta necesariamente en la misma conexión. Verificado; la solución está en [technical-decisions.md](technical-decisions.md) (D-01).

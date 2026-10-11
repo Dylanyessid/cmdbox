@@ -10,7 +10,7 @@ export interface Collection {
 export interface CommandVariable {
   name: string;
   defaultValue?: string;
-  secret: boolean;
+  isSecret: boolean;
 }
 
 export interface Command {

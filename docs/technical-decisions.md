@@ -9,7 +9,7 @@
 | **Fechas** | Unix epoch en **milisegundos**. `INTEGER` en SQLite, `number` en TypeScript. Nombres terminados en `At` (`createdAt`) / `_at` (`created_at`). | Es lo que devuelve `Date.now()`, se ordena y compara directamente y no depende de zonas horarias. Cabe sin pérdida en un `number` de JavaScript. |
 | **IDs** | **UUID v4** como texto, generados en el frontend con `crypto.randomUUID()`. | El ID se conoce antes de insertar y permite exportar/importar colecciones (RF-20) sin colisiones. |
 | **Nombres de campos** | `snake_case` en SQL, `camelCase` en TypeScript. La conversión se hace solo en los repositorios (`toCollection`, `toCommand`). | Cada lenguaje sigue su convención habitual y el resto de la app nunca ve nombres de columnas. |
-| **Booleanos** | `INTEGER` con valores `0`/`1` en SQLite; se convierten a `0`/`1` antes de enviarlos. | SQLite no tiene tipo booleano y `plugin-sql` envía un `true` de JavaScript como texto JSON, que una tabla `STRICT` rechaza. |
+| **Booleanos** | Nombres con prefijo `is`/`has`/`can` (`isSecret`, `is_sensitive`). En SQLite son `INTEGER` con valores `0`/`1` y se convierten a `0`/`1` antes de enviarlos. | El prefijo deja claro que es un booleano: `secret` podría confundirse con el valor secreto. SQLite no tiene tipo booleano y `plugin-sql` envía un `true` de JavaScript como texto JSON, que una tabla `STRICT` rechaza. |
 | **Listas y objetos propios de una entidad** | Columna `TEXT` con JSON, validada con `CHECK (json_valid(...))`. | Ver D-02. |
 | **Texto** | Los nombres se guardan sin espacios al inicio o al final (`trim`). Las listas se ordenan alfabéticamente sin distinguir mayúsculas (`COLLATE NOCASE`). | Evita nombres "vacíos" o duplicados que solo difieren en espacios, y un orden natural para el usuario. |
 
