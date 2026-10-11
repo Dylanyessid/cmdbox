@@ -67,6 +67,7 @@ Prioridad según **MoSCoW**: **M** = Must (MVP), **S** = Should, **C** = Could, 
 | ID | Requisito | Prioridad |
 |---|---|---|
 | RF-20 | Exportar e importar colecciones (JSON). | S |
+| RF-25 | Recuperar colecciones y comandos eliminados (papelera o "deshacer"). | C |
 
 ### 4.7 Versiones futuras
 
