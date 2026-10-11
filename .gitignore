@@ -30,3 +30,6 @@ dist-ssr
 
 # OS
 Thumbs.db
+
+# TypeScript incremental build cache
+*.tsbuildinfo

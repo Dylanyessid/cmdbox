@@ -13,6 +13,8 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    /* App code runs in the webview: don't load Node types (tests use tsconfig.test.json) */
+    "types": [],
 
     /* Linting */
     "strict": true,
@@ -21,5 +23,6 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src"],
+  "exclude": ["src/**/*.test.ts", "src/test"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
