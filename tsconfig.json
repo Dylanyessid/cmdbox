@@ -13,6 +13,9 @@
     "isolatedModules": true,
     "noEmit": true,
     "jsx": "react-jsx",
+    "paths": {
+      "@/*": ["./src/*"]
+    },
     /* App code runs in the webview: don't load Node types (tests use tsconfig.test.json) */
     "types": [],
 
