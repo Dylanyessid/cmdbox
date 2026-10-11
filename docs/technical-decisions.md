@@ -51,7 +51,7 @@ Cada decisión sigue el formato **contexto → decisión → consecuencias**.
 
 - **Contexto**: con `sql:allow-execute`, el frontend puede ejecutar cualquier SQL contra la base de datos. Si existiera una vulnerabilidad XSS, un script inyectado podría leer, modificar o borrar los datos. La alternativa sería exponer solo comandos fijos en Rust (`create_collection`, `delete_command`…), pero aun así un script inyectado podría **leer** todos los datos a través de esos comandos: solo se evitaría el SQL arbitrario.
 - **Decisión**: mantener las consultas en TypeScript (en la capa de repositorios) y concentrar la defensa en evitar el XSS y la fuga de datos:
-  - **Consultas parametrizadas** (`$1`, `$2`…): los valores nunca se concatenan al SQL. Cualquier `${}` dentro de una consulta solo puede ser una constante del código.
+  - **Consultas parametrizadas** (`?1`, `?2`…, la sintaxis nativa de SQLite): los valores nunca se concatenan al SQL. Cualquier `${}` dentro de una consulta solo puede ser una constante del código.
   - **CSP estricta** (RNF-05): no se cargan scripts externos y no se permiten conexiones a servidores externos, así que un script inyectado no podría enviar los datos a ningún lado.
   - **React escapa el texto por defecto**; está prohibido `dangerouslySetInnerHTML` y renderizar HTML proveniente de los datos.
 - **Consecuencias**: se acepta un riesgo bajo (requiere primero un XSS, en una app que no carga contenido externo, y afecta solo a la base de datos local) a cambio de no mantener una capa de comandos en Rust. Si el riesgo cambia (por ejemplo, con sincronización en la nube), se migra solo la implementación de `src/repositories/sqlite/` (ver D-05).

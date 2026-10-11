@@ -37,7 +37,7 @@ export const sqliteCollectionRepository: CollectionRepository = {
       updatedAt: now,
     };
     await db.execute(
-      "INSERT INTO collections (id, name, created_at, updated_at) VALUES ($1, $2, $3, $4)",
+      "INSERT INTO collections (id, name, created_at, updated_at) VALUES (?1, ?2, ?3, ?4)",
       [collection.id, collection.name, collection.createdAt, collection.updatedAt],
     );
     return collection;
@@ -46,7 +46,7 @@ export const sqliteCollectionRepository: CollectionRepository = {
   async rename(id, name) {
     const db = await getDb();
     const result = await db.execute(
-      "UPDATE collections SET name = $1, updated_at = $2 WHERE id = $3",
+      "UPDATE collections SET name = ?1, updated_at = ?2 WHERE id = ?3",
       [name.trim(), Date.now(), id],
     );
     if (result.rowsAffected === 0) throw new NotFoundError("Collection", id);
@@ -55,7 +55,7 @@ export const sqliteCollectionRepository: CollectionRepository = {
   async delete(id) {
     const db = await getDb();
     // Its commands are removed by ON DELETE CASCADE in the same statement.
-    const result = await db.execute("DELETE FROM collections WHERE id = $1", [id]);
+    const result = await db.execute("DELETE FROM collections WHERE id = ?1", [id]);
     if (result.rowsAffected === 0) throw new NotFoundError("Collection", id);
   },
 };
