@@ -21,6 +21,8 @@ interface CollectionItemProps {
   onDelete: () => void;
   onNewCommand: () => void;
   onOpenCommand: (command: Command) => void;
+  onDuplicateCommand: (command: Command) => void;
+  onDeleteCommand: (command: Command) => void;
 }
 
 export function CollectionItem({
@@ -36,6 +38,8 @@ export function CollectionItem({
   onDelete,
   onNewCommand,
   onOpenCommand,
+  onDuplicateCommand,
+  onDeleteCommand,
 }: CollectionItemProps) {
   // When "Rename" is picked, the menu must not move focus back to its trigger:
   // that would blur (and close) the rename input it just opened.
@@ -108,6 +112,8 @@ export function CollectionItem({
               command={command}
               isSelected={editorTarget?.mode === "edit" && editorTarget.commandId === command.id}
               onOpen={() => onOpenCommand(command)}
+              onDuplicate={() => onDuplicateCommand(command)}
+              onDelete={() => onDeleteCommand(command)}
             />
           ))}
           {isDraftingCommand && (

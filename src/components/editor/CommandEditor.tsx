@@ -27,10 +27,17 @@ interface CommandEditorProps {
   command: Command | null;
   collectionName: string;
   onSave: (draft: CommandDraft) => Promise<void>;
+  /** Tells the parent whether the form has unsaved changes. */
+  onDirtyChange: (isDirty: boolean) => void;
 }
 
 /** Edits one command. Render it with a `key` per command so switching commands resets the form. */
-export function CommandEditor({ command, collectionName, onSave }: CommandEditorProps) {
+export function CommandEditor({
+  command,
+  collectionName,
+  onSave,
+  onDirtyChange,
+}: CommandEditorProps) {
   const ids = useId();
   // What is saved, recomputed on every render: after saving, `command` comes back updated
   // and the form becomes clean again. `useState` only uses it as the draft's first value.
@@ -44,6 +51,10 @@ export function CommandEditor({ command, collectionName, onSave }: CommandEditor
     name: draft.name.trim() === "",
     template: draft.template.trim() === "",
   };
+
+  useEffect(() => onDirtyChange(isDirty), [isDirty, onDirtyChange]);
+  // When the editor closes, there are no unsaved changes left to protect.
+  useEffect(() => () => onDirtyChange(false), [onDirtyChange]);
 
   async function save() {
     if (!isDirty || isSaving) return;
