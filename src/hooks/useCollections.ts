@@ -1,26 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
 import type { Collection } from "@/domain/models";
+import { withErrorToast } from "@/lib/withErrorToast";
 import { collectionRepository } from "@/repositories";
 
-/** Runs a repository action; on failure shows an error toast and returns undefined. */
-async function withErrorToast<T>(message: string, action: () => Promise<T>) {
-  try {
-    return await action();
-  } catch (error) {
-    console.error(error);
-    toast.error(message);
-    return undefined;
-  }
-}
-
 export function useCollections() {
-  const [collections, setCollections] = useState<Collection[]>([]);
+  const [items, setItems] = useState<Collection[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // The database owns the order (alphabetical), so reload the list after every change.
   const reload = useCallback(async () => {
-    setCollections(await collectionRepository.list());
+    setItems(await collectionRepository.list());
   }, []);
 
   useEffect(() => {
@@ -48,5 +37,7 @@ export function useCollections() {
       return true;
     });
 
-  return { collections, isLoading, create, rename, remove };
+  return { items, isLoading, create, rename, remove };
 }
+
+export type CollectionsState = ReturnType<typeof useCollections>;
