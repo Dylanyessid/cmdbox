@@ -1,103 +1,126 @@
 import { useRef } from "react";
-import { EllipsisIcon, FolderIcon, PencilIcon, Trash2Icon } from "lucide-react";
+import { ChevronRightIcon, PencilIcon, PlusIcon, SquarePenIcon, Trash2Icon } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import type { Collection } from "@/domain/models";
+import { DropdownMenuItem, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import type { Collection, Command } from "@/domain/models";
+import type { EditorTarget } from "@/state/editorTarget";
+import { ActionsMenu, sidebarRowClass } from "./ActionsMenu";
 import { CollectionNameInput } from "./CollectionNameInput";
+import { CommandItem } from "./CommandItem";
 
 interface CollectionItemProps {
   collection: Collection;
-  isSelected: boolean;
+  commands: Command[];
+  editorTarget: EditorTarget;
+  isExpanded: boolean;
   isRenaming: boolean;
-  onSelect: () => void;
+  onToggle: () => void;
   onStartRename: () => void;
   onRename: (name: string) => void;
   onCancelRename: () => void;
   onDelete: () => void;
+  onNewCommand: () => void;
+  onOpenCommand: (command: Command) => void;
 }
 
 export function CollectionItem({
   collection,
-  isSelected,
+  commands,
+  editorTarget,
+  isExpanded,
   isRenaming,
-  onSelect,
+  onToggle,
   onStartRename,
   onRename,
   onCancelRename,
   onDelete,
+  onNewCommand,
+  onOpenCommand,
 }: CollectionItemProps) {
   // When "Rename" is picked, the menu must not move focus back to its trigger:
   // that would blur (and close) the rename input it just opened.
   const isOpeningRename = useRef(false);
-
-  if (isRenaming) {
-    return (
-      <li className="px-1">
-        <CollectionNameInput
-          initialValue={collection.name}
-          onSubmit={onRename}
-          onCancel={onCancelRename}
-        />
-      </li>
-    );
-  }
+  const isDraftingCommand =
+    editorTarget?.mode === "create" && editorTarget.collectionId === collection.id;
 
   return (
-    <li className="group relative">
-      <button
-        type="button"
-        onClick={onSelect}
-        onDoubleClick={onStartRename}
-        aria-current={isSelected || undefined}
-        className={cn(
-          "flex w-full items-center gap-2 rounded-md py-1.5 pr-8 pl-2 text-left text-sm outline-none hover:bg-sidebar-accent focus-visible:ring-2 focus-visible:ring-sidebar-ring",
-          isSelected && "bg-sidebar-accent font-medium text-sidebar-accent-foreground",
-        )}
-      >
-        <FolderIcon className="size-4 shrink-0 text-muted-foreground" />
-        <span className="truncate">{collection.name}</span>
-      </button>
-
-      {/* Non-modal so opening the delete dialog from it doesn't leave the page unclickable. */}
-      <DropdownMenu modal={false}>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            aria-label={`Actions for ${collection.name}`}
-            className="absolute top-1/2 right-1 -translate-y-1/2 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
+    <li>
+      {isRenaming ? (
+        <div className="px-1">
+          <CollectionNameInput
+            initialValue={collection.name}
+            onSubmit={onRename}
+            onCancel={onCancelRename}
+          />
+        </div>
+      ) : (
+        <div className="group relative">
+          <button
+            type="button"
+            onClick={onToggle}
+            onKeyDown={(e) => e.key === "F2" && onStartRename()}
+            aria-expanded={isExpanded}
+            className={sidebarRowClass()}
           >
-            <EllipsisIcon />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent
-          align="start"
-          onCloseAutoFocus={(e) => {
-            if (isOpeningRename.current) e.preventDefault();
-            isOpeningRename.current = false;
-          }}
-        >
-          <DropdownMenuItem
-            onSelect={() => {
-              isOpeningRename.current = true;
-              onStartRename();
+            <ChevronRightIcon
+              className={cn(
+                "size-4 shrink-0 text-muted-foreground transition-transform",
+                isExpanded && "rotate-90",
+              )}
+            />
+            <span className="truncate">{collection.name}</span>
+          </button>
+
+          <ActionsMenu
+            label={`Actions for ${collection.name}`}
+            onCloseAutoFocus={(e) => {
+              if (isOpeningRename.current) e.preventDefault();
+              isOpeningRename.current = false;
             }}
           >
-            <PencilIcon />
-            Rename
-          </DropdownMenuItem>
-          <DropdownMenuItem variant="destructive" onSelect={onDelete}>
-            <Trash2Icon />
-            Delete
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+            <DropdownMenuItem onSelect={onNewCommand}>
+              <PlusIcon />
+              New command
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onSelect={() => {
+                isOpeningRename.current = true;
+                onStartRename();
+              }}
+            >
+              <PencilIcon />
+              Rename
+            </DropdownMenuItem>
+            <DropdownMenuItem variant="destructive" onSelect={onDelete}>
+              <Trash2Icon />
+              Delete
+            </DropdownMenuItem>
+          </ActionsMenu>
+        </div>
+      )}
+
+      {isExpanded && (
+        <ul className="ml-4 flex flex-col gap-0.5 border-l pl-1">
+          {commands.map((command) => (
+            <CommandItem
+              key={command.id}
+              command={command}
+              isSelected={editorTarget?.mode === "edit" && editorTarget.commandId === command.id}
+              onOpen={() => onOpenCommand(command)}
+            />
+          ))}
+          {isDraftingCommand && (
+            <li className={cn(sidebarRowClass(true), "italic")}>
+              <SquarePenIcon className="size-3.5 shrink-0 text-muted-foreground" />
+              New command
+            </li>
+          )}
+          {commands.length === 0 && !isDraftingCommand && (
+            <li className="px-2 py-1 text-xs text-muted-foreground">No commands</li>
+          )}
+        </ul>
+      )}
     </li>
   );
 }
