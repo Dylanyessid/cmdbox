@@ -32,6 +32,9 @@ Prioridad según **MoSCoW**: **M** = Must (MVP), **S** = Should, **C** = Could, 
 |---|---|---|
 | RF-04 | Crear un comando con: nombre, plantilla del comando, descripción, tags y colección. | M |
 | RF-05 | Editar, duplicar y eliminar comandos. | M |
+| RF-26 | Asignar colores a los tags, consistentes en todos los comandos. | C |
+
+> **Nota (RF-26)**: pendiente de decisión de diseño. Opciones evaluadas: color automático derivado del nombre (hash sobre una paleta fija, sin cambios de esquema); tabla `tag_colors` con el color elegido por el usuario (una sentencia por escritura, D-01); o normalizar los tags en tablas `tags` + `command_tags`, que permitiría renombrarlos y filtrarlos en SQL pero exige varias sentencias por guardado y, por tanto, un comando en Rust con transacción (D-01, D-02).
 
 ### 4.3 Variables
 
