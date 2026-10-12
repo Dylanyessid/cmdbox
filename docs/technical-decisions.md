@@ -12,6 +12,7 @@
 | **Booleanos** | Nombres con prefijo `is`/`has`/`can` (`isSecret`, `is_sensitive`). En SQLite son `INTEGER` con valores `0`/`1` y se convierten a `0`/`1` antes de enviarlos. | El prefijo deja claro que es un booleano: `secret` podría confundirse con el valor secreto. SQLite no tiene tipo booleano y `plugin-sql` envía un `true` de JavaScript como texto JSON, que una tabla `STRICT` rechaza. |
 | **Listas y objetos propios de una entidad** | Columna `TEXT` con JSON, validada con `CHECK (json_valid(...))`. | Ver D-02. |
 | **Texto** | Los nombres se guardan sin espacios al inicio o al final (`trim`). Las listas se ordenan alfabéticamente sin distinguir mayúsculas (`COLLATE NOCASE`). | Evita nombres "vacíos" o duplicados que solo difieren en espacios, y un orden natural para el usuario. |
+| **Valores fijos** | Uniones de literales de TypeScript (`mode: "edit" \| "create"`), no `enum`. Si hace falta recorrer los valores, un array `as const` del que se deriva el tipo. | El compilador las verifica igual que un enum (un valor mal escrito no compila) y, usadas como discriminante, permiten a TypeScript saber qué campos existen en cada caso. No generan código en tiempo de ejecución y son compatibles con `erasableSyntaxOnly` y con la ejecución de TypeScript por *type stripping*. |
 
 ## 2. Decisiones
 

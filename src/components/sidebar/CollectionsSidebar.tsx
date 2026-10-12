@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { PlusIcon } from "lucide-react";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import type { Collection, Command } from "@/domain/models";
 import type { CollectionsState } from "@/hooks/useCollections";
 import type { EditorTarget } from "@/state/editorTarget";
 import { CollectionItem } from "./CollectionItem";
 import { CollectionNameInput } from "./CollectionNameInput";
-import { DeleteCollectionDialog } from "./DeleteCollectionDialog";
 
 interface CollectionsSidebarProps {
   collections: CollectionsState;
@@ -16,6 +16,8 @@ interface CollectionsSidebarProps {
   onOpen: (target: EditorTarget) => void;
   /** Deletes a collection; the parent also refreshes the commands removed with it. */
   onDeleteCollection: (id: string) => Promise<void>;
+  onDuplicateCommand: (command: Command) => Promise<void>;
+  onDeleteCommand: (command: Command) => Promise<void>;
 }
 
 export function CollectionsSidebar({
@@ -24,11 +26,14 @@ export function CollectionsSidebar({
   editorTarget,
   onOpen,
   onDeleteCollection,
+  onDuplicateCommand,
+  onDeleteCommand,
 }: CollectionsSidebarProps) {
   const [isCreating, setIsCreating] = useState(false);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [expandedIds, setExpandedIds] = useState<ReadonlySet<string>>(() => new Set());
-  const [toDelete, setToDelete] = useState<Collection | null>(null);
+  const [collectionToDelete, setCollectionToDelete] = useState<Collection | null>(null);
+  const [commandToDelete, setCommandToDelete] = useState<Command | null>(null);
 
   const commandsByCollection = groupByCollection(commands);
 
@@ -55,9 +60,14 @@ export function CollectionsSidebar({
     await collections.rename(id, name);
   }
 
-  async function handleDelete(collection: Collection) {
-    setToDelete(null);
+  async function handleDeleteCollection(collection: Collection) {
+    setCollectionToDelete(null);
     await onDeleteCollection(collection.id);
+  }
+
+  async function handleDeleteCommand(command: Command) {
+    setCommandToDelete(null);
+    await onDeleteCommand(command);
   }
 
   function handleNewCommand(collectionId: string) {
@@ -66,6 +76,9 @@ export function CollectionsSidebar({
   }
 
   const isEmpty = !collections.isLoading && collections.items.length === 0 && !isCreating;
+  const commandsToDelete = collectionToDelete
+    ? (commandsByCollection.get(collectionToDelete.id)?.length ?? 0)
+    : 0;
 
   return (
     <aside className="flex w-64 shrink-0 flex-col border-r bg-sidebar text-sidebar-foreground">
@@ -105,9 +118,11 @@ export function CollectionsSidebar({
               onStartRename={() => setRenamingId(collection.id)}
               onRename={(name) => handleRename(collection.id, name)}
               onCancelRename={() => setRenamingId(null)}
-              onDelete={() => setToDelete(collection)}
+              onDelete={() => setCollectionToDelete(collection)}
               onNewCommand={() => handleNewCommand(collection.id)}
               onOpenCommand={(command) => onOpen({ mode: "edit", commandId: command.id })}
+              onDuplicateCommand={onDuplicateCommand}
+              onDeleteCommand={setCommandToDelete}
             />
           ))}
         </ul>
@@ -123,13 +138,30 @@ export function CollectionsSidebar({
         )}
       </nav>
 
-      <DeleteCollectionDialog
-        collection={toDelete}
-        onConfirm={handleDelete}
-        onCancel={() => setToDelete(null)}
+      <ConfirmDialog
+        open={collectionToDelete !== null}
+        title={`Delete “${collectionToDelete?.name}”?`}
+        description={`${describeCommands(commandsToDelete)} This can’t be undone.`}
+        confirmLabel="Delete"
+        onConfirm={() => collectionToDelete && handleDeleteCollection(collectionToDelete)}
+        onCancel={() => setCollectionToDelete(null)}
+      />
+      <ConfirmDialog
+        open={commandToDelete !== null}
+        title={`Delete “${commandToDelete?.name}”?`}
+        description="This can’t be undone."
+        confirmLabel="Delete"
+        onConfirm={() => commandToDelete && handleDeleteCommand(commandToDelete)}
+        onCancel={() => setCommandToDelete(null)}
       />
     </aside>
   );
+}
+
+function describeCommands(count: number) {
+  if (count === 0) return "The collection is empty.";
+  if (count === 1) return "Its command will also be deleted.";
+  return `Its ${count} commands will also be deleted.`;
 }
 
 function groupByCollection(commands: Command[]) {

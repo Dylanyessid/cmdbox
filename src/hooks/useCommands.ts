@@ -30,7 +30,24 @@ export function useCommands() {
       return true;
     });
 
-  return { items, isLoading, reload, create, update };
+  const remove = (id: string) =>
+    withErrorToast("Couldn't delete the command", async () => {
+      await commandRepository.delete(id);
+      await reload();
+      return true;
+    });
+
+  const duplicate = (command: Command) =>
+    create({
+      collectionId: command.collectionId,
+      name: `${command.name} (copy)`,
+      template: command.template,
+      description: command.description,
+      tags: command.tags,
+      variables: command.variables,
+    });
+
+  return { items, isLoading, reload, create, update, remove, duplicate };
 }
 
 export type CommandsState = ReturnType<typeof useCommands>;
