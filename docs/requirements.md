@@ -69,6 +69,8 @@ Prioridad según **MoSCoW**: **M** = Must (MVP), **S** = Should, **C** = Could, 
 | RF-20 | Exportar e importar colecciones (JSON). | S |
 | RF-25 | Recuperar colecciones y comandos eliminados (papelera o "deshacer"). | C |
 
+> **Nota de UX (RF-20)**: la importación identifica colecciones y comandos por su UUID: si uno ya existe se **actualiza** (upsert en una sola sentencia, D-01) y si no, se crea; así, reimportar el mismo archivo no duplica datos. Antes de aplicar cambios se muestra una **vista previa** con lo que se creará y lo que se sobrescribirá, resaltando las actualizaciones donde el nombre cambia. Protege de errores reales (importar el archivo equivocado o una versión antigua) y, de paso, haría visible una colisión de UUID, que es teóricamente posible pero despreciable. Queda por decidir qué versión gana cuando el mismo elemento se editó en ambos lados (por ejemplo, la de `updatedAt` más reciente).
+
 ### 4.7 Versiones futuras
 
 | ID | Requisito | Prioridad |
